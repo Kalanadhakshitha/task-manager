@@ -1,5 +1,6 @@
 // --- Imports ---
 const express = require("express");
+const cors = require("cors"); // CORS import
 const knex = require("knex"); // Knex (SQL query builder) import
 const knexConfig = require("./knexfile.js"); // Knex config file import
 
@@ -9,6 +10,7 @@ const app = express();
 const PORT = 5000;
 
 // --- Middleware ---
+app.use(cors()); // Enable CORS for all routes
 app.use(express.json()); // Tell the server to understand JSON data from POST requests
 
 // --- Routes (API Endpoints) ---
