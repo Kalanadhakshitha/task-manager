@@ -1,7 +1,6 @@
-// frontend/src/App.jsx
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify"; // Import Toast
 import "./App.css";
 
 const API_URL = "http://localhost:5000/api/tasks";
@@ -9,28 +8,31 @@ const API_URL = "http://localhost:5000/api/tasks";
 function App() {
   const [tasks, setTasks] = useState([]);
   const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [filter, setFilter] = useState("all");
 
-  // 1. Fetch all tasks on load
+  const [editingId, setEditingId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState("");
+
   useEffect(() => {
     axios
       .get(API_URL)
-      .then((response) => {
-        setTasks(response.data);
-      })
+      .then((response) => setTasks(response.data))
       .catch((error) => {
         console.error("Error fetching tasks:", error);
+        toast.error("Failed to load tasks!"); // Error Alert
       });
   }, []);
 
-  // 2. Handle input field changes
   const handleInputChange = (event) => {
     setNewTaskTitle(event.target.value);
   };
 
-  // 3. Handle Add Task
   const handleAddTask = (event) => {
     event.preventDefault();
-    if (newTaskTitle.trim() === "") return;
+    if (newTaskTitle.trim() === "") {
+      toast.warning("Please enter a task!"); // Warning Alert for empty input
+      return;
+    }
 
     const taskToAdd = { title: newTaskTitle, description: "" };
 
@@ -39,54 +41,85 @@ function App() {
       .then((response) => {
         setTasks([...tasks, response.data]);
         setNewTaskTitle("");
+        toast.success("Task added successfully! 🎉"); // Success Alert
       })
       .catch((error) => {
         console.error("Error adding task:", error);
+        toast.error("Something went wrong!");
       });
   };
 
-  // 4. Handle Delete Task
   const handleDeleteTask = (idToDelete) => {
     axios
       .delete(`${API_URL}/${idToDelete}`)
-      .then((response) => {
-        const updatedTasks = tasks.filter((task) => task.id !== idToDelete);
-        setTasks(updatedTasks);
+      .then(() => {
+        setTasks(tasks.filter((task) => task.id !== idToDelete));
+        toast.error("Task deleted! 🗑️"); // Delete Alert
       })
-      .catch((error) => {
-        console.error("Error deleting task:", error);
-      });
+      .catch((error) => console.error("Error deleting task:", error));
   };
 
-  // 5. Handle Toggle Complete (Mark as Done/Undo) --- (THIS IS NEW) ---
   const handleToggleComplete = (idToUpdate, currentStatus) => {
-    const newStatus = !currentStatus; // Get the opposite status
-
-    // Call the PUT API endpoint to update
+    const newStatus = !currentStatus;
     axios
       .put(`${API_URL}/${idToUpdate}`, { is_completed: newStatus })
-      .then((response) => {
-        // If successful, update the task in our React state
+      .then(() => {
         const updatedTasks = tasks.map((task) => {
-          if (task.id === idToUpdate) {
-            // This is the task we updated, return it with the new status
+          if (task.id === idToUpdate)
             return { ...task, is_completed: newStatus };
-          }
-          // This is not the task we updated, return it as is
           return task;
         });
         setTasks(updatedTasks);
+        if (newStatus) {
+          toast.info("Task marked as completed! ✅"); // Info Alert
+        } else {
+          toast.info("Task marked as active! ↩️");
+        }
       })
-      .catch((error) => {
-        console.error("Error updating task:", error);
-      });
+      .catch((error) => console.error("Error updating task:", error));
   };
+
+  const startEditing = (task) => {
+    setEditingId(task.id);
+    setEditingTitle(task.title);
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditingTitle("");
+  };
+
+  const handleUpdateTitle = (id) => {
+    if (editingTitle.trim() === "") return;
+
+    axios
+      .put(`${API_URL}/${id}`, { title: editingTitle })
+      .then(() => {
+        const updatedTasks = tasks.map((task) => {
+          if (task.id === id) return { ...task, title: editingTitle };
+          return task;
+        });
+        setTasks(updatedTasks);
+        setEditingId(null);
+        toast.success("Task updated successfully! ✏️"); // Update Alert
+      })
+      .catch((error) => console.error("Error updating title:", error));
+  };
+
+  const filteredTasks = tasks.filter((task) => {
+    if (filter === "completed") return task.is_completed;
+    if (filter === "active") return !task.is_completed;
+    return true;
+  });
 
   return (
     <div className="App">
       <header>
         <h1>My Task Manager</h1>
       </header>
+
+      {/* Toast Container placed here */}
+      <ToastContainer position="top-right" autoClose={2000} />
 
       <form onSubmit={handleAddTask} className="task-form">
         <input
@@ -100,48 +133,103 @@ function App() {
 
       <div className="task-list">
         <h2>My Tasks</h2>
-        {tasks.length === 0 ? (
-          <p>No tasks found. Add one!</p>
+
+        <div className="filter-buttons">
+          <button
+            onClick={() => setFilter("all")}
+            className={filter === "all" ? "btn-filter active" : "btn-filter"}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setFilter("active")}
+            className={filter === "active" ? "btn-filter active" : "btn-filter"}
+          >
+            Active
+          </button>
+          <button
+            onClick={() => setFilter("completed")}
+            className={
+              filter === "completed" ? "btn-filter active" : "btn-filter"
+            }
+          >
+            Completed
+          </button>
+        </div>
+
+        {filteredTasks.length === 0 ? (
+          <p>No tasks found.</p>
         ) : (
           <ul>
-            {/* --- THIS PART IS UPDATED --- */}
-            {tasks.map((task) => (
+            {filteredTasks.map((task) => (
               <li key={task.id}>
-                {/* Task Title (with conditional styling) */}
-                <span
-                  className="task-title"
-                  // If task is completed, add the 'completed' class
-                  style={{
-                    textDecoration: task.is_completed ? "line-through" : "none",
-                    color: task.is_completed ? "#888" : "#333",
-                  }}
-                >
-                  {task.title}
-                </span>
+                {editingId === task.id ? (
+                  <div style={{ display: "flex", flexGrow: 1, gap: "10px" }}>
+                    <input
+                      type="text"
+                      value={editingTitle}
+                      onChange={(e) => setEditingTitle(e.target.value)}
+                      style={{
+                        flexGrow: 1,
+                        padding: "8px",
+                        borderRadius: "4px",
+                        border: "1px solid #4a90e2",
+                      }}
+                    />
+                    <button
+                      className="btn-done"
+                      onClick={() => handleUpdateTitle(task.id)}
+                    >
+                      Save
+                    </button>
+                    <button className="btn-delete" onClick={cancelEditing}>
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <span
+                      className="task-title"
+                      style={{
+                        textDecoration: task.is_completed
+                          ? "line-through"
+                          : "none",
+                        color: task.is_completed ? "#888" : "#333",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => startEditing(task)}
+                    >
+                      {task.title}
+                    </span>
 
-                {/* Action Buttons */}
-                <div className="task-actions">
-                  {/* Done/Undo Button */}
-                  <button
-                    onClick={() =>
-                      handleToggleComplete(task.id, task.is_completed)
-                    }
-                    className={task.is_completed ? "btn-undo" : "btn-done"}
-                  >
-                    {task.is_completed ? "Undo" : "Done"}
-                  </button>
+                    <div className="task-actions">
+                      <button
+                        onClick={() => startEditing(task)}
+                        style={{ backgroundColor: "#e0e0e0", color: "#333" }}
+                      >
+                        Edit
+                      </button>
 
-                  {/* Delete Button */}
-                  <button
-                    onClick={() => handleDeleteTask(task.id)}
-                    className="btn-delete"
-                  >
-                    Delete
-                  </button>
-                </div>
+                      <button
+                        onClick={() =>
+                          handleToggleComplete(task.id, task.is_completed)
+                        }
+                        className={task.is_completed ? "btn-undo" : "btn-done"}
+                      >
+                        {task.is_completed ? "Undo" : "Done"}
+                      </button>
+
+                      <button
+                        onClick={() => handleDeleteTask(task.id)}
+                        className="btn-delete"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </>
+                )}
               </li>
             ))}
-            {/* --- END OF UPDATED PART --- */}
           </ul>
         )}
       </div>
