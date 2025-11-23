@@ -3,7 +3,8 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify"; // Import Toast
 import "./App.css";
 
-const API_URL = "http://localhost:5000/api/tasks";
+const API_URL =
+  "https://83f87a77-6a39-4579-a1f5-300ae14be54e-00-3v2bhof5n5igu.pike.replit.dev/api/tasks";
 
 function App() {
   const [tasks, setTasks] = useState([]);
