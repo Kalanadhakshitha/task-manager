@@ -174,3 +174,26 @@ header h1 {
   background-color: #e8a03c;
   color: white;
 }
+.loader-container {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+
+.loader {
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #4a90e2;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

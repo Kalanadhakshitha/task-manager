@@ -1,6 +1,9 @@
+// frontend/src/App.jsx
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify"; // Import Toast
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 
 const API_URL =
@@ -11,16 +14,26 @@ function App() {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [filter, setFilter] = useState("all");
 
+  // Loading State
+  const [isLoading, setIsLoading] = useState(true);
+
   const [editingId, setEditingId] = useState(null);
   const [editingTitle, setEditingTitle] = useState("");
 
   useEffect(() => {
+    // Loading start before fetching data
+    setIsLoading(true);
+
     axios
       .get(API_URL)
-      .then((response) => setTasks(response.data))
+      .then((response) => {
+        setTasks(response.data);
+        setIsLoading(false); // Loading stops after data is received
+      })
       .catch((error) => {
         console.error("Error fetching tasks:", error);
-        toast.error("Failed to load tasks!"); // Error Alert
+        toast.error("Failed to load tasks!");
+        setIsLoading(false); // Loading stops even if there is an error
       });
   }, []);
 
@@ -31,7 +44,7 @@ function App() {
   const handleAddTask = (event) => {
     event.preventDefault();
     if (newTaskTitle.trim() === "") {
-      toast.warning("Please enter a task!"); // Warning Alert for empty input
+      toast.warning("Please enter a task!");
       return;
     }
 
@@ -42,7 +55,7 @@ function App() {
       .then((response) => {
         setTasks([...tasks, response.data]);
         setNewTaskTitle("");
-        toast.success("Task added successfully! 🎉"); // Success Alert
+        toast.success("Task added successfully! 🎉");
       })
       .catch((error) => {
         console.error("Error adding task:", error);
@@ -55,7 +68,7 @@ function App() {
       .delete(`${API_URL}/${idToDelete}`)
       .then(() => {
         setTasks(tasks.filter((task) => task.id !== idToDelete));
-        toast.error("Task deleted! 🗑️"); // Delete Alert
+        toast.error("Task deleted! 🗑️");
       })
       .catch((error) => console.error("Error deleting task:", error));
   };
@@ -72,7 +85,7 @@ function App() {
         });
         setTasks(updatedTasks);
         if (newStatus) {
-          toast.info("Task marked as completed! ✅"); // Info Alert
+          toast.info("Task marked as completed! ✅");
         } else {
           toast.info("Task marked as active! ↩️");
         }
@@ -102,7 +115,7 @@ function App() {
         });
         setTasks(updatedTasks);
         setEditingId(null);
-        toast.success("Task updated successfully! ✏️"); // Update Alert
+        toast.success("Task updated successfully! ✏️");
       })
       .catch((error) => console.error("Error updating title:", error));
   };
@@ -119,7 +132,6 @@ function App() {
         <h1>My Task Manager</h1>
       </header>
 
-      {/* Toast Container placed here */}
       <ToastContainer position="top-right" autoClose={2000} />
 
       <form onSubmit={handleAddTask} className="task-form">
@@ -158,7 +170,12 @@ function App() {
           </button>
         </div>
 
-        {filteredTasks.length === 0 ? (
+        {/* Loading Indicator */}
+        {isLoading ? (
+          <div className="loader-container">
+            <div className="loader"></div>
+          </div>
+        ) : filteredTasks.length === 0 ? (
           <p>No tasks found.</p>
         ) : (
           <ul>
