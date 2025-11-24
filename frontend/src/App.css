@@ -25,22 +25,25 @@ body {
 header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   width: 100%;
-  padding: 40px 20px;
+  padding: 15px 20px;
+
   text-align: center;
   color: white;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  margin-bottom: -40px; /* Overlaps with container */
+  margin-bottom: -25px;
 }
 
 header h1 {
   margin: 0;
-  font-size: 2.5rem;
+  font-size: 1.8rem;
   font-weight: 600;
 }
 
 header p {
   opacity: 0.9;
-  margin-top: 5px;
+  margin-top: 2px;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
 }
 
 .container {
