@@ -7,10 +7,11 @@
 
 body {
   font-family: "Poppins", sans-serif;
-  background: #f0f2f5;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #333;
   margin: 0;
-  padding: 0;
+  padding: 20px;
+  min-height: 100vh;
 }
 
 .App {
