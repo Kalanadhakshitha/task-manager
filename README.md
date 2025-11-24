@@ -70,5 +70,8 @@ If you want to run this project on your local machine:
 ---
 
 ## 📸 Screenshots
+<img width="1876" height="847" alt="Task2" src="https://github.com/user-attachments/assets/17178614-9e3c-48b6-b896-3bd6ece74417" />
+<img width="1877" height="849" alt="Task1" src="https://github.com/user-attachments/assets/9fb9ac87-6cff-444e-b1e3-595248bfb1c8" />
+<img width="1881" height="855" alt="Task3" src="https://github.com/user-attachments/assets/c2c4989a-d364-40e8-8af7-05c83a23d12b" />
 
 Created by **Kalana Dhakshitha**
