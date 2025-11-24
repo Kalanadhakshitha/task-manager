@@ -6,40 +6,34 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 
-const API_URL =
-  "https://83f87a77-6a39-4579-a1f5-300ae14be54e-00-3v2bhof5n5igu.pike.replit.dev/api/tasks";
+// ඔයාගේ Replit ලින්ක් එක එහෙම්මම තියන්න (api/tasks කෑල්ල එක්කම)
+const API_URL = "https://task-manager-kalana.replit.dev/api/tasks";
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDate, setNewTaskDate] = useState(""); // 1. අලුත් Date State එක
   const [filter, setFilter] = useState("all");
-
-  // Loading State
   const [isLoading, setIsLoading] = useState(true);
 
   const [editingId, setEditingId] = useState(null);
   const [editingTitle, setEditingTitle] = useState("");
+  const [editingDate, setEditingDate] = useState(""); // Edit කරනකොට Date එක වෙනස් කරන්න
 
   useEffect(() => {
-    // Loading start before fetching data
     setIsLoading(true);
-
     axios
       .get(API_URL)
       .then((response) => {
         setTasks(response.data);
-        setIsLoading(false); // Loading stops after data is received
+        setIsLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching tasks:", error);
         toast.error("Failed to load tasks!");
-        setIsLoading(false); // Loading stops even if there is an error
+        setIsLoading(false);
       });
   }, []);
-
-  const handleInputChange = (event) => {
-    setNewTaskTitle(event.target.value);
-  };
 
   const handleAddTask = (event) => {
     event.preventDefault();
@@ -48,13 +42,18 @@ function App() {
       return;
     }
 
-    const taskToAdd = { title: newTaskTitle, description: "" };
+    // Backend එකට යවන ඩේටා ටික
+    const taskToAdd = {
+      title: newTaskTitle,
+      due_date: newTaskDate, // 2. Date එකත් යවනවා
+    };
 
     axios
       .post(API_URL, taskToAdd)
       .then((response) => {
         setTasks([...tasks, response.data]);
         setNewTaskTitle("");
+        setNewTaskDate(""); // Input එක හිස් කරනවා
         toast.success("Task added successfully! 🎉");
       })
       .catch((error) => {
@@ -84,11 +83,6 @@ function App() {
           return task;
         });
         setTasks(updatedTasks);
-        if (newStatus) {
-          toast.info("Task marked as completed! ✅");
-        } else {
-          toast.info("Task marked as active! ↩️");
-        }
       })
       .catch((error) => console.error("Error updating task:", error));
   };
@@ -96,28 +90,34 @@ function App() {
   const startEditing = (task) => {
     setEditingId(task.id);
     setEditingTitle(task.title);
+    setEditingDate(task.due_date || ""); // තියෙන Date එක ගන්නවා
   };
 
   const cancelEditing = () => {
     setEditingId(null);
     setEditingTitle("");
+    setEditingDate("");
   };
 
-  const handleUpdateTitle = (id) => {
+  const handleUpdateTask = (id) => {
     if (editingTitle.trim() === "") return;
 
     axios
-      .put(`${API_URL}/${id}`, { title: editingTitle })
+      .put(`${API_URL}/${id}`, {
+        title: editingTitle,
+        due_date: editingDate, // Update කරනකොට Date එකත් යවනවා
+      })
       .then(() => {
         const updatedTasks = tasks.map((task) => {
-          if (task.id === id) return { ...task, title: editingTitle };
+          if (task.id === id)
+            return { ...task, title: editingTitle, due_date: editingDate };
           return task;
         });
         setTasks(updatedTasks);
         setEditingId(null);
         toast.success("Task updated successfully! ✏️");
       })
-      .catch((error) => console.error("Error updating title:", error));
+      .catch((error) => console.error("Error updating task:", error));
   };
 
   const filteredTasks = tasks.filter((task) => {
@@ -135,13 +135,45 @@ function App() {
       <ToastContainer position="top-right" autoClose={2000} />
 
       <form onSubmit={handleAddTask} className="task-form">
-        <input
-          type="text"
-          placeholder="What needs to be done?"
-          value={newTaskTitle}
-          onChange={handleInputChange}
-        />
-        <button type="submit">Add Task</button>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+            flexGrow: 1,
+          }}
+        >
+          <input
+            type="text"
+            placeholder="What needs to be done?"
+            value={newTaskTitle}
+            onChange={(e) => setNewTaskTitle(e.target.value)}
+            style={{ width: "95%" }}
+          />
+          {/* 3. Date Picker Input */}
+          <input
+            type="date"
+            value={newTaskDate}
+            onChange={(e) => setNewTaskDate(e.target.value)}
+            style={{
+              padding: "10px",
+              borderRadius: "6px",
+              border: "2px solid #ddd",
+              width: "150px",
+              color: "#555",
+            }}
+          />
+        </div>
+        <button
+          type="submit"
+          style={{
+            height: "fit-content",
+            alignSelf: "center",
+            marginLeft: "10px",
+          }}
+        >
+          Add Task
+        </button>
       </form>
 
       <div className="task-list">
@@ -170,7 +202,6 @@ function App() {
           </button>
         </div>
 
-        {/* Loading Indicator */}
         {isLoading ? (
           <div className="loader-container">
             <div className="loader"></div>
@@ -182,21 +213,47 @@ function App() {
             {filteredTasks.map((task) => (
               <li key={task.id}>
                 {editingId === task.id ? (
-                  <div style={{ display: "flex", flexGrow: 1, gap: "10px" }}>
-                    <input
-                      type="text"
-                      value={editingTitle}
-                      onChange={(e) => setEditingTitle(e.target.value)}
+                  // --- EDIT MODE ---
+                  <div
+                    style={{
+                      display: "flex",
+                      flexGrow: 1,
+                      gap: "10px",
+                      alignItems: "center",
+                    }}
+                  >
+                    <div
                       style={{
+                        display: "flex",
+                        flexDirection: "column",
                         flexGrow: 1,
-                        padding: "8px",
-                        borderRadius: "4px",
-                        border: "1px solid #4a90e2",
+                        gap: "5px",
                       }}
-                    />
+                    >
+                      <input
+                        type="text"
+                        value={editingTitle}
+                        onChange={(e) => setEditingTitle(e.target.value)}
+                        style={{
+                          padding: "8px",
+                          borderRadius: "4px",
+                          border: "1px solid #4a90e2",
+                        }}
+                      />
+                      <input
+                        type="date"
+                        value={editingDate}
+                        onChange={(e) => setEditingDate(e.target.value)}
+                        style={{
+                          padding: "5px",
+                          borderRadius: "4px",
+                          border: "1px solid #ddd",
+                        }}
+                      />
+                    </div>
                     <button
                       className="btn-done"
-                      onClick={() => handleUpdateTitle(task.id)}
+                      onClick={() => handleUpdateTask(task.id)}
                     >
                       Save
                     </button>
@@ -205,20 +262,42 @@ function App() {
                     </button>
                   </div>
                 ) : (
+                  // --- NORMAL MODE ---
                   <>
-                    <span
-                      className="task-title"
+                    <div
                       style={{
-                        textDecoration: task.is_completed
-                          ? "line-through"
-                          : "none",
-                        color: task.is_completed ? "#888" : "#333",
-                        cursor: "pointer",
+                        display: "flex",
+                        flexDirection: "column",
+                        flexGrow: 1,
                       }}
-                      onClick={() => startEditing(task)}
                     >
-                      {task.title}
-                    </span>
+                      <span
+                        className="task-title"
+                        style={{
+                          textDecoration: task.is_completed
+                            ? "line-through"
+                            : "none",
+                          color: task.is_completed ? "#888" : "#333",
+                          cursor: "pointer",
+                          fontWeight: "500",
+                        }}
+                        onClick={() => startEditing(task)}
+                      >
+                        {task.title}
+                      </span>
+                      {/* 4. Date එක පෙන්වන තැන */}
+                      {task.due_date && (
+                        <span
+                          style={{
+                            fontSize: "0.85em",
+                            color: "#666",
+                            marginTop: "4px",
+                          }}
+                        >
+                          📅 {task.due_date}
+                        </span>
+                      )}
+                    </div>
 
                     <div className="task-actions">
                       <button
@@ -227,7 +306,6 @@ function App() {
                       >
                         Edit
                       </button>
-
                       <button
                         onClick={() =>
                           handleToggleComplete(task.id, task.is_completed)
@@ -236,7 +314,6 @@ function App() {
                       >
                         {task.is_completed ? "Undo" : "Done"}
                       </button>
-
                       <button
                         onClick={() => handleDeleteTask(task.id)}
                         className="btn-delete"
