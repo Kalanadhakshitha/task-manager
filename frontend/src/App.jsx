@@ -101,6 +101,11 @@ function App() {
     return true;
   });
 
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "";
+    return dateString.replace("T", " at ");
+  };
+
   return (
     <div className="App">
       <ToastContainer position="top-center" autoClose={2000} theme="colored" />
@@ -111,7 +116,6 @@ function App() {
       </header>
 
       <div className="container">
-        {/* Input Section */}
         <form onSubmit={handleAddTask} className="task-form card">
           <div className="input-group">
             <input
@@ -121,8 +125,9 @@ function App() {
               value={newTaskTitle}
               onChange={(e) => setNewTaskTitle(e.target.value)}
             />
+            {/* datetime-local */}
             <input
-              type="date"
+              type="datetime-local"
               className="date-input"
               value={newTaskDate}
               onChange={(e) => setNewTaskDate(e.target.value)}
@@ -133,7 +138,6 @@ function App() {
           </button>
         </form>
 
-        {/* Filter Section */}
         <div className="filters">
           {["all", "active", "completed"].map((f) => (
             <button
@@ -146,7 +150,6 @@ function App() {
           ))}
         </div>
 
-        {/* Task List */}
         <div className="task-list">
           {isLoading ? (
             <div className="loader"></div>
@@ -170,8 +173,9 @@ function App() {
                         value={editingTitle}
                         onChange={(e) => setEditingTitle(e.target.value)}
                       />
+                      {/*datetime-local */}
                       <input
-                        type="date"
+                        type="datetime-local"
                         value={editingDate}
                         onChange={(e) => setEditingDate(e.target.value)}
                       />
@@ -204,7 +208,9 @@ function App() {
                         <div className="details">
                           <span className="title">{task.title}</span>
                           {task.due_date && (
-                            <span className="date">📅 {task.due_date}</span>
+                            <span className="date">
+                              📅 {formatDateTime(task.due_date)}
+                            </span>
                           )}
                         </div>
                       </div>
