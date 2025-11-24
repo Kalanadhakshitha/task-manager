@@ -1,5 +1,5 @@
 /* frontend/src/App.css */
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Poppins:wght@300;400;600&display=swap");
 
 * {
   box-sizing: border-box;
@@ -7,7 +7,7 @@
 
 body {
   font-family: "Poppins", sans-serif;
-  background: linear-gradient(to right, #243949 0%, #517fa4 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #333;
   margin: 0;
   padding: 20px;
@@ -21,12 +21,10 @@ body {
   align-items: center;
 }
 
-/* Header Design */
 header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   width: 100%;
   padding: 15px 20px;
-
   text-align: center;
   color: white;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -35,8 +33,11 @@ header {
 
 header h1 {
   margin: 0;
-  font-size: 2.5rem;
-  font-weight: 600;
+  font-family: "Montserrat", sans-serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 header p {

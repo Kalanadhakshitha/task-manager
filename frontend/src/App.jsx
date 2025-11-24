@@ -111,7 +111,7 @@ function App() {
       <ToastContainer position="top-center" autoClose={2000} theme="colored" />
 
       <header>
-        <h1>✨ My Task Manager</h1>
+        <h1>My Task Manager</h1>
         <p>Stay organized, stay productive.</p>
       </header>
 
